@@ -1,4 +1,4 @@
-#include "aws.h"
+#include "../include/aws.h"
 
 /**
  * getawscreds
@@ -9,6 +9,11 @@
  * Note: The caller must free the memory allocated for `key` and `secret`
  */
 int getawscreds(struct awscreds *creds) {
+    if(creds == NULL) {
+        fprintf(stderr, "output struct must not be null\n");
+        return -1;
+    }
+
     const char *home = getenv("HOME");
 
     char credspath[1024];
@@ -20,15 +25,13 @@ int getawscreds(struct awscreds *creds) {
         AWS_CREDS_FILE
     );
     if(res < 0) {
-        error("failed to build aws credentials filepath\n");
+        fprintf(stderr, "failed to build aws credentials filepath\n");
         return -1;
     }
 
-    debug("looking for aws credentials file at: %s\n", credspath);
-
     FILE *credsfile = fopen(credspath, "rb");
     if (credsfile == NULL) {
-        error("failed to read aws credentials file\n");
+        fprintf(stderr, "failed to read aws credentials file\n");
         return -1; 
     }
 
@@ -38,7 +41,7 @@ int getawscreds(struct awscreds *creds) {
 
     char *buf = (char *) malloc(filesize + 1);
     if (buf == NULL) {
-        error("failed to allocate memory to read aws credentials file\n");
+        fprintf(stderr, "failed to allocate memory to read aws credentials file\n");
         fclose(credsfile);
         return -1; 
     }
@@ -63,11 +66,11 @@ int getawscreds(struct awscreds *creds) {
     }
 
     if(strlen(key) < 1) {
-        error("faield to find key\n");
+        fprintf(stderr, "faield to find key\n");
         return -1;
     }
     if(strlen(secret) < 1) {
-        error("faield to find secret key\n");
+        fprintf(stderr, "faield to find secret key\n");
         return -1;
     }
 
@@ -89,6 +92,11 @@ int getawscreds(struct awscreds *creds) {
  * Note: The caller must free the memory allocated for `region`
  */
 int getawsconfig(struct awsconfig *config) {
+    if(config == NULL) {
+        fprintf(stderr, "output struct must not be null\n");
+        return -1;
+    }
+
     const char *home = getenv("HOME");
 
     char configpath[1024];
@@ -100,13 +108,13 @@ int getawsconfig(struct awsconfig *config) {
         AWS_CONFIG_FILE
     );
     if(res < 0) {
-        error("failed to build aws config filepath\n");
+        fprintf(stderr, "failed to build aws config filepath\n");
         return -1;
     }
 
     FILE *configfile = fopen(configpath, "rb");
     if (configfile == NULL) {
-        error("failed to read aws config file\n");
+        fprintf(stderr, "failed to read aws config file\n");
         return -1; 
     }
 
@@ -116,7 +124,7 @@ int getawsconfig(struct awsconfig *config) {
 
     char *buf = (char *) malloc(filesize + 1);
     if (buf == NULL) {
-        error("failed to allocate memory to read aws config file\n");
+        fprintf(stderr, "failed to allocate memory to read aws config file\n");
         fclose(configfile);
         return -1; 
     }
@@ -138,7 +146,7 @@ int getawsconfig(struct awsconfig *config) {
     }
     
     if(strlen(region) < 1) {
-        error("failed to find region\n");
+        fprintf(stderr, "failed to find region\n");
         return -1;
     }
 
