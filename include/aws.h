@@ -20,4 +20,6 @@ struct awsconfig {
 int getawscreds(struct awscreds *);
 int getawsconfig(struct awsconfig *);
 
+int getxmlbody(char *, const size_t, const char *);
+
 #endif

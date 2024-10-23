@@ -156,3 +156,55 @@ int getawsconfig(struct awsconfig *config) {
 
     return 0;
 }
+
+int getxmlbody(char *output, const size_t len, const char *response) {
+    char *chunk = strstr(response, "\r\n\r\n");
+    if(chunk == NULL) {
+        fprintf(stderr, "failed to find start of http body\n");
+        return -1;
+    }
+    chunk += 4;
+
+    size_t totalxmlsize = 0;
+    while(1) {
+        int contentlength = 0;
+        if(sscanf(chunk, "%x\r\n", &contentlength) == EOF) {
+            fprintf(stderr, "failed to get content length from http body\n");
+            return -1;
+        } 
+        if(contentlength < 1) {
+            break;
+        }
+
+        chunk = strstr(chunk, "\r\n");
+        if(chunk == NULL) {
+            fprintf(stderr, "failed to get chunk from http body\n");
+            return -1;
+        } 
+        chunk += 2;
+        
+        if(totalxmlsize + contentlength >= len) {
+            fprintf(stderr, "output buffer size too small for xml body\n");
+            return -1;
+        }
+
+        strncpy(output + totalxmlsize, chunk, contentlength);
+        totalxmlsize += contentlength;
+
+        chunk = strstr(chunk, "\r\n");
+        if(chunk == NULL) {
+            fprintf(stderr, "failed to get chunk from http body\n");
+            return -1;
+        }
+        chunk += 2;
+    }
+
+    if (totalxmlsize < len) {
+        output[totalxmlsize] = '\0';
+    } else {
+        fprintf(stderr, "output buffer size too small for xml body\n");
+        return -1;
+    }
+
+    return 0;
+}
