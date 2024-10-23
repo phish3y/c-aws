@@ -39,13 +39,7 @@ int getawscreds(struct awscreds *creds) {
     long filesize = ftell(credsfile);
     fseek(credsfile, 0, SEEK_SET);
 
-    char *buf = (char *) malloc(filesize + 1);
-    if (buf == NULL) {
-        fprintf(stderr, "failed to allocate memory to read aws credentials file\n");
-        fclose(credsfile);
-        return -1; 
-    }
-
+    char buf[filesize + 1];
     size_t bytesRead = fread(buf, 1, filesize, credsfile);
     buf[bytesRead] = '\0';
     
@@ -77,8 +71,6 @@ int getawscreds(struct awscreds *creds) {
     // TODO check key/secret were found
     creds->key = strdup(key);
     creds->secret = strdup(secret);
-
-    free(buf);
 
     return 0;
 }
@@ -122,13 +114,7 @@ int getawsconfig(struct awsconfig *config) {
     long filesize = ftell(configfile);
     fseek(configfile, 0, SEEK_SET);
 
-    char *buf = (char *) malloc(filesize + 1);
-    if (buf == NULL) {
-        fprintf(stderr, "failed to allocate memory to read aws config file\n");
-        fclose(configfile);
-        return -1; 
-    }
-
+    char buf[filesize + 1];
     size_t bytesRead = fread(buf, 1, filesize, configfile);
     buf[bytesRead] = '\0';
     
@@ -151,8 +137,6 @@ int getawsconfig(struct awsconfig *config) {
     }
 
     config->region = strdup(region);
-
-    free(buf);
 
     return 0;
 }
