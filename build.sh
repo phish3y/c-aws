@@ -1,4 +1,4 @@
 #!/bin/bash
 
 mkdir -p target
-gcc -Wall -DDEBUG aws.h aws.c main.c -lssl -lcrypto -o target/aws
+gcc -Wall -DDEBUG include/aws.h src/aws.c src/main.c -lssl -lcrypto $(xml2-config --cflags --libs) -o target/aws

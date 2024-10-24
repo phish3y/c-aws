@@ -192,3 +192,52 @@ int getxmlbody(char *output, const size_t len, const char *response) {
 
     return 0;
 }
+
+// TODO WIP
+int getlistobjectresult(const char *xml) {
+    xmlDocPtr xmldoc = xmlParseMemory(xml, strlen(xml));
+    if(xmldoc == NULL) {
+        fprintf(stderr, "error parsing xml string\n");
+        return -1;
+    }
+
+    xmlXPathContextPtr xpathctx = xmlXPathNewContext(xmldoc);
+    if(xpathctx == NULL) {
+        fprintf(stderr, "error to get xpath context\n");
+        return -1;
+    }
+
+    xmlXPathRegisterNs(xpathctx, (xmlChar *) "s3", (xmlChar *) "http://s3.amazonaws.com/doc/2006-03-01/"); // TODO error?
+
+    char keys[100][256]; // TODO
+    int keycount = 0;
+
+    const char *xpath = "//s3:Key";
+    xmlXPathObjectPtr xpathobj = xmlXPathEvalExpression((xmlChar *) xpath, xpathctx);
+    if(xpathobj == NULL) {
+        fprintf(stderr, "failed to evaluate xpath\n");
+        return -1;
+    } else if(!xmlXPathNodeSetIsEmpty(xpathobj->nodesetval)) {
+        for(int i = 0; i < xpathobj->nodesetval->nodeNr; i++) {
+            xmlNodePtr xmlnode = xpathobj->nodesetval->nodeTab[i];
+            xmlChar *xmlcontent = xmlNodeGetContent(xmlnode);
+            
+            strncpy(keys[i], (const char *) xmlcontent, 256 - 1);
+            keys[i][256 - 1] = '\0';
+
+            keycount++;
+
+            xmlFree(xmlcontent);
+        }
+    }
+
+    for(int i = 0; i < keycount; i++) {
+        printf("key %d: %s\n", i + 1, keys[i]);
+    }
+    
+    xmlXPathFreeObject(xpathobj);
+    xmlXPathFreeContext(xpathctx);
+    xmlFreeDoc(xmldoc);
+
+    return 0;
+}
