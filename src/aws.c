@@ -241,3 +241,83 @@ int getlistobjectresult(const char *xml) {
 
     return 0;
 }
+
+int bucketconnect() {
+    int sock;
+    if((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+        fprintf(stderr, "failed to create socket\n");
+        return -1;
+    }
+
+    // get hostname ip
+    struct hostent *h;
+    if((h = gethostbyname("")) == NULL) {
+        fprintf(stderr, "failed to get ip of hostname\n");
+        return -1;
+    }
+    char *ip = inet_ntoa(*((struct in_addr *) h->h_addr_list[0]));
+
+    // set sin_addr and sin_port
+    struct sockaddr_in *remote = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in *));
+    remote->sin_family = AF_INET;
+    int res;
+    if((res = inet_pton(AF_INET, ip, (void *) (&(remote->sin_addr.s_addr)))) <= 0) {
+        fprintf(stderr, "failed to set sin_addr\n");
+        return -1;
+    }
+    remote->sin_port = htons(80);
+
+    // connect
+    if(connect(sock, (struct sockaddr *) remote, sizeof(struct sockaddr)) < 0) {
+        fprintf(stderr, "failed to connect to bucket\n");
+        return -1;
+    }
+
+    return sock;
+}
+
+int httpsend(const int sock, const char *req) {
+    int sent = 0;
+    while(sent < strlen(req)) {
+        int res = send(sock, req + sent, strlen(req) - sent, 0);
+        if(res == -1) {
+            fprintf(stderr, "failed to send http request\n");
+            return -1;
+        }
+
+        sent += res;
+    }
+
+    return 0;
+}
+
+int httpreceive(const int sock, char *output, const size_t len) {
+    size_t totalrec = 0;
+    char buf[BUFSIZ];
+    ssize_t currentrec = 0;
+    while((currentrec = recv(sock, buf, BUFSIZ - 1, 0)) > 0) {
+        buf[currentrec] = '\0';
+
+        if(totalrec + currentrec >= len) {
+            fprintf(stderr, "output buffer size too samll for response\n");
+            return -1;
+        }
+
+        memcpy(output + totalrec, buf, currentrec);
+        totalrec += currentrec;
+    }
+
+    if(currentrec < 0) {
+        fprintf(stderr, "failed to receive http response\n");
+        return -1;
+    }
+
+    if(totalrec < len) {
+        output[totalrec] = '\0';
+    } else {
+        fprintf(stderr, "output buffer size too small for response\n");
+        return -1;
+    }
+
+    return 0;
+}

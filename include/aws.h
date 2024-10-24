@@ -1,10 +1,12 @@
 #ifndef AWS_H
 #define AWS_H
 
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <arpa/inet.h>
 #include <libxml/xpathInternals.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
